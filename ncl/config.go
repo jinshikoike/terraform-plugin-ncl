@@ -1,25 +1,44 @@
 package ncl
 
-// type Config struct {
-// 	ApiKey string
-// }
+import (
+	"fmt"
 
-// type FastlyClient struct {
-// 	conn *gofastly.Client
-// }
+	"github.com/higebu/go-niftycloud/compute"
+	"github.com/higebu/go-niftycloud/niftycloud"
+)
 
-// func (c *Config) Client() (interface{}, error) {
-// 	var client FastlyClient
+type Config struct {
+	AccessKey string
+	SecretKey string
+	Region    string
+}
 
-// 	if c.ApiKey == "" {
-// 		return nil, fmt.Errorf("[Err] No API key for Fastly")
-// 	}
+type NclClient struct {
+	*compute.Compute
+	// TODO: Mutex?
+}
 
-// 	fconn, err := gofastly.NewClient(c.ApiKey)
-// 	if err != nil {
-// 		return nil, err
-// 	}
+func (c *Config) Client() (*NclClient, error) {
+	if c.AccessKey == "" {
+		return nil, fmt.Errorf("[Err] No Access key for NiftyCloud")
+	}
 
-// 	client.conn = fconn
-// 	return &client, nil
-// }
+	if c.SecretKey == "" {
+		return nil, fmt.Errorf("[Err] No Secret key for NiftyCloud")
+	}
+
+	if c.Region == "" {
+		return nil, fmt.Errorf("[Err] No Region Name for NiftyCloud")
+	}
+
+	region := niftycloud.Regions[c.Region]
+	auth, authError := niftycloud.GetAuth(c.AccessKey, c.SecretKey)
+
+	if authError != nil {
+		return authError, fmt.Errorf("[Err] auth error")
+	}
+
+	client := &NclClient{compute.New(auth, region)}
+
+	return client, nil
+}

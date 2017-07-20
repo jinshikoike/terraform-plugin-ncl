@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/hashicorp/terraform/plugin"
-	"github.com/jinshikoike/terraform-ncl/ncl"
+	"github.com/jinshikoike/terraform-provider-ncl/ncl"
 )
 
 func main() {
