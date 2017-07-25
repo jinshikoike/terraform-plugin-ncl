@@ -9,7 +9,7 @@ import (
 func Provider() terraform.ResourceProvider {
 	return &schema.Provider{
 		Schema: map[string]*schema.Schema{
-			"access_ky": &schema.Schema{
+			"access_key": &schema.Schema{
 				Type:     schema.TypeString,
 				Optional: true,
 				DefaultFunc: schema.MultiEnvDefaultFunc([]string{
@@ -17,7 +17,7 @@ func Provider() terraform.ResourceProvider {
 				}, nil),
 				Description: "NiftyCloud API Key ",
 			},
-			"secret_ky": &schema.Schema{
+			"secret_key": &schema.Schema{
 				Type:     schema.TypeString,
 				Optional: true,
 				DefaultFunc: schema.MultiEnvDefaultFunc([]string{
@@ -37,16 +37,16 @@ func Provider() terraform.ResourceProvider {
 		ResourcesMap: map[string]*schema.Resource{
 			"ncl_instance": resourceInstance(),
 		},
-
 		ConfigureFunc: providerConfigure,
 	}
 }
 
 func providerConfigure(d *schema.ResourceData) (interface{}, error) {
-	config := Config{
+	config := &Config{
 		AccessKey: d.Get("access_key").(string),
 		SecretKey: d.Get("secret_key").(string),
 		Region:    d.Get("region").(string),
 	}
-	return config.Client()
+	client, err := config.Client()
+	return client, err
 }

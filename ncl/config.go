@@ -35,7 +35,7 @@ func (c *Config) Client() (*NclClient, error) {
 	auth, authError := niftycloud.GetAuth(c.AccessKey, c.SecretKey)
 
 	if authError != nil {
-		return authError, fmt.Errorf("[Err] auth error")
+		return nil, fmt.Errorf("[Err] auth error")
 	}
 
 	client := &NclClient{compute.New(auth, region)}

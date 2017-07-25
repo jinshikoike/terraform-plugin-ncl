@@ -10,8 +10,8 @@
 [[projects]]
   name = "github.com/aws/aws-sdk-go"
   packages = ["aws","aws/awserr","aws/awsutil","aws/client","aws/client/metadata","aws/corehandlers","aws/credentials","aws/credentials/ec2rolecreds","aws/credentials/endpointcreds","aws/credentials/stscreds","aws/defaults","aws/ec2metadata","aws/endpoints","aws/request","aws/session","aws/signer/v4","internal/shareddefaults","private/protocol","private/protocol/query","private/protocol/query/queryutil","private/protocol/rest","private/protocol/restxml","private/protocol/xml/xmlutil","service/s3","service/sts"]
-  revision = "8da51c33f6001c4dda06a2561c2234be4cece1ed"
-  version = "v1.10.13"
+  revision = "6ff7be1a127941b8dc9a408ac9c2dd6eb2167a5d"
+  version = "v1.10.15"
 
 [[projects]]
   branch = "master"
@@ -45,6 +45,12 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/hashicorp/go-hclog"
+  packages = ["."]
+  revision = "b4e5765d1e5f00a0550911084f45f8214b5b83b9"
+
+[[projects]]
+  branch = "master"
   name = "github.com/hashicorp/go-multierror"
   packages = ["."]
   revision = "83588e72410abfbe4df460eeb6f30841ae47d4c4"
@@ -53,7 +59,7 @@
   branch = "master"
   name = "github.com/hashicorp/go-plugin"
   packages = ["."]
-  revision = "5ee1a665d1862b865bd2203cdce4f08e39841815"
+  revision = "03136dc196bf3ce9ac05bb584e56d61ffeb2f1a7"
 
 [[projects]]
   branch = "master"
@@ -155,13 +161,13 @@
   branch = "master"
   name = "golang.org/x/crypto"
   packages = ["bcrypt","blowfish"]
-  revision = "4bc1c249b153ce1da9f55437759cec51fe6acabb"
+  revision = "6914964337150723782436d56b3f21610a74ce7b"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/net"
   packages = ["context","http2","http2/hpack","idna","internal/timeseries","lex/httplex","trace"]
-  revision = "02ac38e2528ff4adea90f184d71a3faa04b4b1b0"
+  revision = "ab5485076ff3407ad2d02db054635913f017b0ed"
 
 [[projects]]
   branch = "master"
