@@ -2,6 +2,7 @@ package ncl
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/higebu/go-niftycloud/compute"
 	"github.com/higebu/go-niftycloud/niftycloud"
@@ -28,7 +29,12 @@ func (c *Config) Client() (*NclClient, error) {
 	}
 
 	if c.Region == "" {
-		return nil, fmt.Errorf("[Err] No Region Name for NiftyCloud")
+		regionNameList := []string{}
+
+		for k := range niftycloud.Regions {
+			regionNameList = append(regionNameList, k)
+		}
+		return nil, fmt.Errorf("[Err] No Region Name for NiftyCloud, You Can Choose one from ", strings.Join(regionNameList, ","))
 	}
 
 	region := niftycloud.Regions[c.Region]
