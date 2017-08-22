@@ -18,7 +18,7 @@ func main() {
 	opts := compute.RunInstancesOptions{
 		ImageId: "68", // CentOS 6.4 64bit Plain
 		//		InstanceId:     "test",
-		KeyName:      "tfplugin",
+		KeyName:      "OjtKoike",
 		InstanceType: "mini",
 		//SecurityGroups: []compute.SecurityGroup{{Name: "examplegroup"}},
 		AvailZone:      "west-11",
