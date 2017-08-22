@@ -21,3 +21,8 @@ vendor/
 
 # credential
 .envrc
+
+# ignore files of terraform
+examples/crash.log
+terraform.tfstat*
+.terraform/
