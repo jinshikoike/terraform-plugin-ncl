@@ -7,4 +7,7 @@ resource "ncl_instance" "sample" {
   avail_zone = "west-12"
   accounting_type = "2"
   instance_id = "OjtTerra"
+  security_groups = [
+    { name = "OjtKoike" }
+  ]
 }
