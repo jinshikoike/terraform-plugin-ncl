@@ -31,20 +31,20 @@ func resourceInstance() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"security_groups": &schema.Schema{
-				Type: schema.TypeList,
-				//Required: true,
-				Optional: true,
-				//MiniItms: 1,
+			"security_groups": &schema.Schema{ // TypeString is better to understand.
+				Type:     schema.TypeList,
+				Required: true,
+				MinItems: 1,
+				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": &schema.Schema{
 							Type:     schema.TypeString,
-							Required: true,
+							Optional: true,
 						},
 						"name": &schema.Schema{
 							Type:     schema.TypeString,
-							Optional: true,
+							Required: true,
 						},
 					},
 				},
@@ -65,10 +65,13 @@ func resourceInstance() *schema.Resource {
 			"instance_id": &schema.Schema{
 				Type:     schema.TypeString,
 				Optional: true,
-				//ValidateFunc: func(data interface{}, name string) {
-				//	// TODO: validate
-				//	fmt.Println("validation")
-				//},
+				ValidateFunc: func(data interface{}, name string) (ws []string, errors []error) {
+					input_data := data.(string)
+					if len(input_data) > 15 {
+						errors = append(errors, fmt.Errorf("instance_id length must be <= 15"))
+					}
+					return
+				},
 			},
 			"admin": &schema.Schema{
 				Type:     schema.TypeString,
@@ -97,11 +100,20 @@ func resourceInstance() *schema.Resource {
 func resourceInstanceCreate(d *schema.ResourceData, meta interface{}) error {
 	nclClient := meta.(*NclClient)
 
+	securityGroupList := []compute.SecurityGroup{}
+	if v, ok := d.GetOk("security_groups"); ok {
+		securityGroups := v.([]interface{})
+		for _, securityGroupSchema := range securityGroups {
+			securityGroup := compute.SecurityGroup{Name: securityGroupSchema.(map[string]interface{})["name"].(string)}
+			securityGroupList = append(securityGroupList, securityGroup)
+		}
+	}
+
 	opts := compute.RunInstancesOptions{
-		ImageId:      d.Get("image_id").(string),
-		KeyName:      d.Get("key_name").(string),
-		InstanceType: d.Get("instance_type").(string),
-		//SecurityGroups: []compute.SecurityGroup{{Name: "OjtKoike"}},
+		ImageId:        d.Get("image_id").(string),
+		KeyName:        d.Get("key_name").(string),
+		InstanceType:   d.Get("instance_type").(string),
+		SecurityGroups: securityGroupList,
 		AvailZone:      d.Get("avail_zone").(string),
 		AccountingType: d.Get("accounting_type").(string),
 		InstanceId:     d.Get("instance_id").(string),
