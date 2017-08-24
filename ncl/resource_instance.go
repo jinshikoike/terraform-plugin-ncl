@@ -1,7 +1,10 @@
 package ncl
 
 import (
+	"encoding/json"
 	"fmt"
+	"os"
+	"strings"
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/higebu/go-niftycloud/compute"
@@ -17,7 +20,7 @@ func resourceInstance() *schema.Resource {
 			"image_id": &schema.Schema{
 				Type:     schema.TypeString,
 				Required: true,
-				//ForceNew: true,
+				ForceNew: true,
 			},
 			"key_name": &schema.Schema{
 				Type:     schema.TypeString,
@@ -118,21 +121,76 @@ func resourceInstanceCreate(d *schema.ResourceData, meta interface{}) error {
 		AccountingType: d.Get("accounting_type").(string),
 		InstanceId:     d.Get("instance_id").(string),
 	}
-	_, err := nclClient.RunInstances(&opts)
+	resp, err := nclClient.RunInstances(&opts)
 
 	if err != nil {
 		return fmt.Errorf("Error completing tasks: %#v", err)
 	}
+	d.SetId(resp.Instances[0].InstanceId + "," + resp.Instances[0].InstanceUniqueId)
+	//	d.Get("external_ip").(string) + ":" + portString + " > " + d.Get("internal_ip").(string) + ":" + translatedPortString)
+	return nil
+}
 
-	//	d.SetId(d.Get("external_ip").(string) + ":" + portString + " > " + d.Get("internal_ip").(string) + ":" + translatedPortString)
-	return nil
-}
 func resourceInstanceDelete(d *schema.ResourceData, meta interface{}) error {
+
 	return nil
 }
+
 func resourceInstanceUpdate(d *schema.ResourceData, m interface{}) error {
 	return nil
 }
+
 func resourceInstanceRead(d *schema.ResourceData, meta interface{}) error {
+	filePath := "/home/koike/go/src/github.com/jinshikoike/terraform-provider-ncl/examples/mylog"
+	file, err := os.Create(filePath)
+	if err != nil {
+		// Openエラー処理
+	}
+	defer file.Close()
+	nclClient := meta.(*NclClient)
+	terraformId := d.Id()
+
+	if len(strings.Split(terraformId, ",")) < 2 {
+		file.Write(([]byte)("strings split < 2 ; " + terraformId + "\n"))
+
+		d.SetId("")
+		return nil
+	}
+
+	instanceId := strings.Split(terraformId, ",")[0]
+	instanceUniqueId := strings.Split(terraformId, ",")[1]
+
+	resp, err := nclClient.DescribeInstances([]string{instanceId}, nil)
+	if err != nil {
+		return fmt.Errorf("DescribeInstances request error: %s", err)
+	}
+
+	var instance *compute.Instance
+	_ = instance
+	for _, reservation := range resp.Reservations {
+		for _, instanceItem := range reservation.Instances {
+			if instanceItem.InstanceUniqueId == instanceUniqueId {
+				instance = &instanceItem
+				break
+			}
+		}
+	}
+
+	if instance == nil {
+		file.Write(([]byte)("instance is nil"))
+		d.SetId("")
+		return nil
+	}
+
+	d.Set("image_id", instance.ImageId)
+	d.Set("key_name", instance.KeyName)
+	d.Set("instance_type", instance.InstanceType)
+	d.Set("avail_zone", instance.AvailZone)
+	d.Set("accounting_type", instance.AccountingType)
+	d.Set("instance_id", instance.InstanceId)
+
+	data, _ := json.Marshal(resp.Reservations)
+	file.Write(data)
+
 	return nil
 }
