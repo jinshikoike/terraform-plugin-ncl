@@ -40,6 +40,9 @@ func main() {
 	//targetInstances := []string{resp.Instances[0].InstanceId}
 	//targetInstances := []string{}
 	resp2, err2 := client.DescribeInstances([]string{"OjtKoike"}, nil)
+
+	//resp2, err2 := client.DescribeInstances([]string{"i-0bpbqidh"}, nil)
+
 	a, _ := json.Marshal(resp2.Reservations)
 	os.Stdout.Write(a)
 	fmt.Println("\n")

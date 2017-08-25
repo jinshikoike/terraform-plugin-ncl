@@ -96,6 +96,10 @@ func resourceInstance() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
+			"code": &schema.Schema{
+				Type:     schema.TypeInt,
+				Optional: true,
+			},
 		},
 	}
 }
@@ -127,16 +131,63 @@ func resourceInstanceCreate(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error completing tasks: %#v", err)
 	}
 	d.SetId(resp.Instances[0].InstanceId + "," + resp.Instances[0].InstanceUniqueId)
-	//	d.Get("external_ip").(string) + ":" + portString + " > " + d.Get("internal_ip").(string) + ":" + translatedPortString)
 	return nil
 }
 
 func resourceInstanceDelete(d *schema.ResourceData, meta interface{}) error {
+	nclClient := meta.(*NclClient)
+	if err := resourceInstanceRead(d, meta); err != nil {
+		return err
+	}
 
-	return nil
+	instanceId, _, stlipErr := extractId(d)
+
+	if stlipErr != nil {
+		return nil
+	}
+	opts := compute.StopInstancesOptions{
+		//Force: true,
+		InstanceIds: []string{
+			instanceId,
+		},
+	}
+
+	_, respErr := nclClient.StopInstances(&opts)
+	if respErr != nil {
+		return fmt.Errorf("Error Stop Instance: %s", respErr)
+	}
+
+	return resourceInstanceRead(d, meta)
 }
 
 func resourceInstanceUpdate(d *schema.ResourceData, m interface{}) error {
+	nclClient := meta.(*NclClient)
+
+	securityGroupList := []compute.SecurityGroup{}
+	if v, ok := d.GetOk("security_groups"); ok {
+		securityGroups := v.([]interface{})
+		for _, securityGroupSchema := range securityGroups {
+			securityGroup := compute.SecurityGroup{Name: securityGroupSchema.(map[string]interface{})["name"].(string)}
+			securityGroupList = append(securityGroupList, securityGroup)
+		}
+	}
+
+	opts := compute.RunInstancesOptions{
+		ImageId:        d.Get("image_id").(string),
+		KeyName:        d.Get("key_name").(string),
+		InstanceType:   d.Get("instance_type").(string),
+		SecurityGroups: securityGroupList,
+		AvailZone:      d.Get("avail_zone").(string),
+		AccountingType: d.Get("accounting_type").(string),
+		InstanceId:     d.Get("instance_id").(string),
+	}
+	resp, err := nclClient.RunInstances(&opts)
+
+	if err != nil {
+		return fmt.Errorf("Error completing tasks: %#v", err)
+	}
+	d.SetId(resp.Instances[0].InstanceId + "," + resp.Instances[0].InstanceUniqueId)
+
 	return nil
 }
 
@@ -147,18 +198,26 @@ func resourceInstanceRead(d *schema.ResourceData, meta interface{}) error {
 		// Openエラー処理
 	}
 	defer file.Close()
+
 	nclClient := meta.(*NclClient)
-	terraformId := d.Id()
 
-	if len(strings.Split(terraformId, ",")) < 2 {
-		file.Write(([]byte)("strings split < 2 ; " + terraformId + "\n"))
-
+	instanceId, instanceUniqueId, stlipErr := extractId(d)
+	if stlipErr != nil {
 		d.SetId("")
 		return nil
 	}
 
-	instanceId := strings.Split(terraformId, ",")[0]
-	instanceUniqueId := strings.Split(terraformId, ",")[1]
+	//terraformId := d.Id()
+
+	//if len(strings.Split(terraformId, ",")) < 2 {
+	//	file.Write(([]byte)("strings split < 2 ; " + terraformId + "\n"))
+
+	//	d.SetId("")
+	//	return nil
+	//}
+
+	//instanceId := strings.Split(terraformId, ",")[0]
+	//instanceUniqueId := strings.Split(terraformId, ",")[1]
 
 	resp, err := nclClient.DescribeInstances([]string{instanceId}, nil)
 	if err != nil {
@@ -188,9 +247,25 @@ func resourceInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("avail_zone", instance.AvailZone)
 	d.Set("accounting_type", instance.AccountingType)
 	d.Set("instance_id", instance.InstanceId)
-
+	d.Set("code", instance.State.Code)
 	data, _ := json.Marshal(resp.Reservations)
 	file.Write(data)
 
 	return nil
+}
+
+func extractId(d *schema.ResourceData) (instanceId string, instanceUniqueId string, err error) {
+	terraformId := d.Id()
+
+	if terraformId == "" {
+		return "", "", fmt.Errorf("terrafrom id is empty")
+	}
+
+	if len(strings.Split(terraformId, ",")) < 2 {
+		return "", "", fmt.Errorf("strings split < 2 ; " + terraformId + "\n")
+	}
+
+	instanceId = strings.Split(terraformId, ",")[0]
+	instanceUniqueId = strings.Split(terraformId, ",")[1]
+	return
 }
