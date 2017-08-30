@@ -145,54 +145,30 @@ func resourceInstanceDelete(d *schema.ResourceData, meta interface{}) error {
 	if stlipErr != nil {
 		return nil
 	}
-	opts := compute.StopInstancesOptions{
-		//Force: true,
-		InstanceIds: []string{
-			instanceId,
-		},
-	}
+	// opts := compute.StopInstancesOptions{
+	// 	//Force: true,
+	// 	InstanceIds: []string{
+	// 		instanceId,
+	// 	},
+	// }
 
-	_, respErr := nclClient.StopInstances(&opts)
+	//_, respErr := nclClient.StopInstances(&opts)
+	_, respErr := nclClient.TerminateInstances([]string{instanceId})
 	if respErr != nil {
-		return fmt.Errorf("Error Stop Instance: %s", respErr)
+		return fmt.Errorf("Error terminate Instance: %s", respErr)
 	}
 
 	return resourceInstanceRead(d, meta)
 }
 
-func resourceInstanceUpdate(d *schema.ResourceData, m interface{}) error {
-	nclClient := meta.(*NclClient)
-
-	securityGroupList := []compute.SecurityGroup{}
-	if v, ok := d.GetOk("security_groups"); ok {
-		securityGroups := v.([]interface{})
-		for _, securityGroupSchema := range securityGroups {
-			securityGroup := compute.SecurityGroup{Name: securityGroupSchema.(map[string]interface{})["name"].(string)}
-			securityGroupList = append(securityGroupList, securityGroup)
-		}
-	}
-
-	opts := compute.RunInstancesOptions{
-		ImageId:        d.Get("image_id").(string),
-		KeyName:        d.Get("key_name").(string),
-		InstanceType:   d.Get("instance_type").(string),
-		SecurityGroups: securityGroupList,
-		AvailZone:      d.Get("avail_zone").(string),
-		AccountingType: d.Get("accounting_type").(string),
-		InstanceId:     d.Get("instance_id").(string),
-	}
-	resp, err := nclClient.RunInstances(&opts)
-
-	if err != nil {
-		return fmt.Errorf("Error completing tasks: %#v", err)
-	}
-	d.SetId(resp.Instances[0].InstanceId + "," + resp.Instances[0].InstanceUniqueId)
-
+func resourceInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
+	resourceInstanceRead(d, meta)
 	return nil
 }
 
 func resourceInstanceRead(d *schema.ResourceData, meta interface{}) error {
-	filePath := "/home/koike/go/src/github.com/jinshikoike/terraform-provider-ncl/examples/mylog"
+	filePath := "/Users/shinji/go/src/github.com/jinshikoike/terraform-provider-ncl/examples/mylog"
+	//filePath := "/home/koike/go/src/github.com/jinshikoike/terraform-provider-ncl/examples/mylog"
 	file, err := os.Create(filePath)
 	if err != nil {
 		// Openエラー処理
