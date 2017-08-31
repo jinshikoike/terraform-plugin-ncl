@@ -40,9 +40,11 @@ func main() {
 	//targetInstances := []string{resp.Instances[0].InstanceId}
 	//targetInstances := []string{}
 	resp2, err2 := client.DescribeInstances([]string{"OjtKoike"}, nil)
-
+	fmt.Println(err2)
 	//resp2, err2 := client.DescribeInstances([]string{"i-0bpbqidh"}, nil)
-
+	// fmt.Println(len(resp2.Reservations))
+	// fmt.Println(len(resp2.Reservations[0].Instances))
+	fmt.Println("\n")
 	a, _ := json.Marshal(resp2.Reservations)
 	os.Stdout.Write(a)
 	fmt.Println("\n")
@@ -56,5 +58,9 @@ func main() {
 	//fmt.Println("terraform id : " + terraformId)
 	fmt.Println("instance id : " + instanceId)
 	//fmt.Println("unique instance id : " + uniqueInstanceId)
+
+	fmt.Println("----------------------------------------------------")
+	_, err3 := client.TerminateInstances([]string{"OjtTerra"})
+	fmt.Println(err3)
 
 }
