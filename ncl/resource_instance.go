@@ -4,11 +4,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"strings"
+	"time"
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/higebu/go-niftycloud/compute"
 )
+
+const statePending = 0
+const stateActive = 16
+const stateStop = 80
 
 func resourceInstance() *schema.Resource {
 	return &schema.Resource{
@@ -96,10 +100,10 @@ func resourceInstance() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"code": &schema.Schema{
-				Type:     schema.TypeInt,
-				Optional: true,
-			},
+			// "code": &schema.Schema{
+			// 	Type:     schema.TypeInt,
+			// 	Optional: true,
+			// },
 		},
 	}
 }
@@ -117,20 +121,24 @@ func resourceInstanceCreate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	opts := compute.RunInstancesOptions{
-		ImageId:        d.Get("image_id").(string),
-		KeyName:        d.Get("key_name").(string),
-		InstanceType:   d.Get("instance_type").(string),
-		SecurityGroups: securityGroupList,
-		AvailZone:      d.Get("avail_zone").(string),
-		AccountingType: d.Get("accounting_type").(string),
-		InstanceId:     d.Get("instance_id").(string),
+		ImageId:               d.Get("image_id").(string),
+		KeyName:               d.Get("key_name").(string),
+		InstanceType:          d.Get("instance_type").(string),
+		SecurityGroups:        securityGroupList,
+		AvailZone:             d.Get("avail_zone").(string),
+		AccountingType:        d.Get("accounting_type").(string),
+		InstanceId:            d.Get("instance_id").(string),
+		DisableAPITermination: false,
 	}
 	resp, err := nclClient.RunInstances(&opts)
 
 	if err != nil {
 		return fmt.Errorf("Error completing tasks: %#v", err)
 	}
-	d.SetId(resp.Instances[0].InstanceId + "," + resp.Instances[0].InstanceUniqueId)
+	//d.SetId(resp.Instances[0].InstanceId + "," + resp.Instances[0].InstanceUniqueId)
+	// TODO: https://github.com/higebu/go-niftycloud/blob/master/compute/compute.go#L328
+	// can not set false to DisableApiTermination
+	d.SetId(resp.Instances[0].InstanceId)
 	return nil
 }
 
@@ -140,30 +148,49 @@ func resourceInstanceDelete(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	instanceId, _, stlipErr := extractId(d)
-
-	if stlipErr != nil {
+	instanceID := d.Id()
+	if instanceID == "" {
 		return nil
 	}
-	// opts := compute.StopInstancesOptions{
-	// 	//Force: true,
-	// 	InstanceIds: []string{
-	// 		instanceId,
-	// 	},
-	// }
 
-	//_, respErr := nclClient.StopInstances(&opts)
-	_, respErr := nclClient.TerminateInstances([]string{instanceId})
-	if respErr != nil {
-		return fmt.Errorf("Error terminate Instance: %s", respErr)
+	instanceIsActive, currentState, _ := checkStatusCode(nclClient, instanceID, stateActive, stateStop)
+	if !instanceIsActive {
+		return nil
 	}
 
+	if currentState != stateStop {
+		opts := compute.StopInstancesOptions{
+			//Force: true,
+			InstanceIds: []string{
+				instanceID,
+			},
+		}
+
+		_, respErr := nclClient.StopInstances(&opts)
+		if respErr != nil {
+			return fmt.Errorf("Error Stop Instance: %s", respErr)
+		}
+
+		// wait instance state change from pending to stop
+		for loopCount := 0; loopCount <= 10; {
+			result, _, _ := checkStatusCode(nclClient, instanceID, stateStop)
+			if result {
+				break
+			}
+			time.Sleep(10 * time.Second)
+			loopCount++
+		}
+	}
+
+	_, terminateErr := nclClient.TerminateInstances([]string{instanceID})
+	if terminateErr != nil {
+		return fmt.Errorf("Error Terminate Instance: %s", terminateErr)
+	}
 	return resourceInstanceRead(d, meta)
 }
 
 func resourceInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
-	resourceInstanceRead(d, meta)
-	return nil
+	return resourceInstanceRead(d, meta)
 }
 
 func resourceInstanceRead(d *schema.ResourceData, meta interface{}) error {
@@ -177,45 +204,26 @@ func resourceInstanceRead(d *schema.ResourceData, meta interface{}) error {
 
 	nclClient := meta.(*NclClient)
 
-	instanceId, instanceUniqueId, stlipErr := extractId(d)
-	if stlipErr != nil {
-		d.SetId("")
+	instanceID := d.Id()
+	if instanceID == "" {
 		return nil
 	}
 
-	//terraformId := d.Id()
-
-	//if len(strings.Split(terraformId, ",")) < 2 {
-	//	file.Write(([]byte)("strings split < 2 ; " + terraformId + "\n"))
-
-	//	d.SetId("")
-	//	return nil
-	//}
-
-	//instanceId := strings.Split(terraformId, ",")[0]
-	//instanceUniqueId := strings.Split(terraformId, ",")[1]
-
-	resp, err := nclClient.DescribeInstances([]string{instanceId}, nil)
+	resp, err := nclClient.DescribeInstances([]string{instanceID}, nil)
 	if err != nil {
+		if err.Error() == "500 Internal Server Error" {
+			d.SetId("")
+			return nil
+		}
 		return fmt.Errorf("DescribeInstances request error: %s", err)
 	}
 
-	var instance *compute.Instance
-	_ = instance
-	for _, reservation := range resp.Reservations {
-		for _, instanceItem := range reservation.Instances {
-			if instanceItem.InstanceUniqueId == instanceUniqueId {
-				instance = &instanceItem
-				break
-			}
-		}
-	}
-
-	if instance == nil {
-		file.Write(([]byte)("instance is nil"))
+	if len(resp.Reservations) < 1 || len(resp.Reservations[0].Instances) < 1 {
 		d.SetId("")
 		return nil
 	}
+
+	instance := resp.Reservations[0].Instances[0]
 
 	d.Set("image_id", instance.ImageId)
 	d.Set("key_name", instance.KeyName)
@@ -223,25 +231,31 @@ func resourceInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("avail_zone", instance.AvailZone)
 	d.Set("accounting_type", instance.AccountingType)
 	d.Set("instance_id", instance.InstanceId)
-	d.Set("code", instance.State.Code)
+	//d.Set("code", instance.State.Code) may be unnecessary
 	data, _ := json.Marshal(resp.Reservations)
 	file.Write(data)
 
 	return nil
 }
 
-func extractId(d *schema.ResourceData) (instanceId string, instanceUniqueId string, err error) {
-	terraformId := d.Id()
-
-	if terraformId == "" {
-		return "", "", fmt.Errorf("terrafrom id is empty")
+func checkStatusCode(client *NclClient, instanceID string, expectedState int, extraExpectedState ...int) (bool, int, error) {
+	resp, err := client.DescribeInstances([]string{instanceID}, nil)
+	if err != nil {
+		if err.Error() == "500 Internal Server Error" {
+			// May be Instance is not found.
+			return false, -1, nil
+		}
+		return false, -1, err
 	}
-
-	if len(strings.Split(terraformId, ",")) < 2 {
-		return "", "", fmt.Errorf("strings split < 2 ; " + terraformId + "\n")
+	currentState := resp.Reservations[0].Instances[0].State.Code
+	result := false
+	if currentState == expectedState {
+		result = true
 	}
-
-	instanceId = strings.Split(terraformId, ",")[0]
-	instanceUniqueId = strings.Split(terraformId, ",")[1]
-	return
+	for _, state := range extraExpectedState {
+		if currentState == state {
+			result = true
+		}
+	}
+	return result, currentState, nil
 }
