@@ -7,12 +7,16 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/higebu/go-niftycloud/compute"
+	"github.com/jinshikoike/go-niftycloud/compute"
 )
 
+const noState = -1
 const statePending = 0
 const stateActive = 16
 const stateStop = 80
+
+const maxLoopCount = 20
+const elapsedSecond = 10
 
 func resourceInstance() *schema.Resource {
 	return &schema.Resource{
@@ -100,16 +104,25 @@ func resourceInstance() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			// "code": &schema.Schema{
-			// 	Type:     schema.TypeInt,
-			// 	Optional: true,
-			// },
+			"force_destroy": &schema.Schema{
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+			"code": &schema.Schema{
+				Type:     schema.TypeInt,
+				Optional: true,
+			},
 		},
 	}
 }
 
 func resourceInstanceCreate(d *schema.ResourceData, meta interface{}) error {
 	nclClient := meta.(*NclClient)
+
+	if d.Get("force_destroy").(bool) {
+		return nil
+	}
 
 	securityGroupList := []compute.SecurityGroup{}
 	if v, ok := d.GetOk("security_groups"); ok {
@@ -138,6 +151,21 @@ func resourceInstanceCreate(d *schema.ResourceData, meta interface{}) error {
 	//d.SetId(resp.Instances[0].InstanceId + "," + resp.Instances[0].InstanceUniqueId)
 	// TODO: https://github.com/higebu/go-niftycloud/blob/master/compute/compute.go#L328
 	// can not set false to DisableApiTermination
+
+	//for loopCount := 0; loopCount <= 10; {
+	//	result, _, _ := checkStatusCode(nclClient, instanceID, stateActive)
+	//	if result {
+	//		break
+	//	}
+	//	time.Sleep(10 * time.Second)
+	//	loopCount++
+	//}
+
+	result := polling(nclClient, resp.Instances[0].InstanceId, stateActive)
+	if result {
+		d.Set("code", stateActive)
+	}
+
 	d.SetId(resp.Instances[0].InstanceId)
 	return nil
 }
@@ -172,24 +200,49 @@ func resourceInstanceDelete(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		// wait instance state change from pending to stop
-		for loopCount := 0; loopCount <= 10; {
-			result, _, _ := checkStatusCode(nclClient, instanceID, stateStop)
-			if result {
-				break
-			}
-			time.Sleep(10 * time.Second)
-			loopCount++
+		//for loopCount := 0; loopCount <= 10; {
+		//	result, _, _ := checkStatusCode(nclClient, instanceID, stateStop)
+		//	if result {
+		//		break
+		//	}
+		//	time.Sleep(10 * time.Second)
+		//	loopCount++
+		//}
+		polling(nclClient, instanceID, stateStop)
+	}
+
+	if d.Get("force_destroy").(bool) {
+		_, terminateErr := nclClient.TerminateInstances([]string{instanceID})
+		if terminateErr != nil {
+			return fmt.Errorf("Error Terminate Instance: %s", terminateErr)
 		}
 	}
 
-	_, terminateErr := nclClient.TerminateInstances([]string{instanceID})
-	if terminateErr != nil {
-		return fmt.Errorf("Error Terminate Instance: %s", terminateErr)
-	}
 	return resourceInstanceRead(d, meta)
 }
 
 func resourceInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
+	nclClient := meta.(*NclClient)
+	instanceID := d.Id()
+	if instanceID == "" {
+		return nil
+	}
+
+	result, _, _ := checkStatusCode(nclClient, instanceID, stateStop)
+
+	if result {
+		// Start Instance
+		_, err := nclClient.StartInstances(instanceID)
+		if err != nil {
+			return fmt.Errorf("Error start Instances")
+		}
+
+		if polling(nclClient, instanceID, stateActive) {
+			d.Set("code", stateActive)
+		}
+
+	}
+
 	return resourceInstanceRead(d, meta)
 }
 
@@ -206,7 +259,7 @@ func resourceInstanceRead(d *schema.ResourceData, meta interface{}) error {
 
 	instanceID := d.Id()
 	if instanceID == "" {
-		return nil
+		instanceID = d.Get("image_id").(string)
 	}
 
 	resp, err := nclClient.DescribeInstances([]string{instanceID}, nil)
@@ -231,14 +284,14 @@ func resourceInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("avail_zone", instance.AvailZone)
 	d.Set("accounting_type", instance.AccountingType)
 	d.Set("instance_id", instance.InstanceId)
-	//d.Set("code", instance.State.Code) may be unnecessary
+	d.Set("code", instance.State.Code)
 	data, _ := json.Marshal(resp.Reservations)
 	file.Write(data)
 
 	return nil
 }
 
-func checkStatusCode(client *NclClient, instanceID string, expectedState int, extraExpectedState ...int) (bool, int, error) {
+func checkStatusCode(client *NclClient, instanceID string, expectedState ...int) (bool, int, error) {
 	resp, err := client.DescribeInstances([]string{instanceID}, nil)
 	if err != nil {
 		if err.Error() == "500 Internal Server Error" {
@@ -249,13 +302,23 @@ func checkStatusCode(client *NclClient, instanceID string, expectedState int, ex
 	}
 	currentState := resp.Reservations[0].Instances[0].State.Code
 	result := false
-	if currentState == expectedState {
-		result = true
-	}
-	for _, state := range extraExpectedState {
+
+	for _, state := range expectedState {
 		if currentState == state {
 			result = true
 		}
 	}
 	return result, currentState, nil
+}
+
+func polling(client *NclClient, instanceID string, expectedState ...int) (result bool) {
+	for loopCount := 0; loopCount <= maxLoopCount; {
+		result, _, _ = checkStatusCode(client, instanceID, expectedState...)
+		if result {
+			break
+		}
+		time.Sleep(elapsedSecond * time.Second)
+		loopCount++
+	}
+	return
 }
