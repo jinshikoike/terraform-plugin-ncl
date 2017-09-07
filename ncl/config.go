@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/higebu/go-niftycloud/compute"
-	"github.com/higebu/go-niftycloud/niftycloud"
+	"github.com/jinshikoike/go-niftycloud/compute"
+	"github.com/jinshikoike/go-niftycloud/niftycloud"
 )
 
 type Config struct {
