@@ -10,6 +10,7 @@ resource "ncl_instance" "sample" {
   security_groups = [
     { name = "OjtKoike" }
   ]
+  stop = false
 }
 
 resource "ncl_instance" "sample2" {
@@ -22,6 +23,7 @@ resource "ncl_instance" "sample2" {
   security_groups = [
     { name = "OjtKoike" }
   ]
+  # force_destroy= true
 }
 
 resource "ncl_instance" "sample3" {
@@ -34,4 +36,5 @@ resource "ncl_instance" "sample3" {
   security_groups = [
     { name = "OjtKoike" }
   ]
+  # force_destroy= true
 }

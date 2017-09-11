@@ -1,14 +1,11 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
-	"os"
-	"strings"
 
-	"github.com/higebu/go-niftycloud/compute"
-	"github.com/higebu/go-niftycloud/niftycloud"
+	"github.com/jinshikoike/go-niftycloud/compute"
+	"github.com/jinshikoike/go-niftycloud/niftycloud"
 )
 
 func main() {
@@ -39,28 +36,38 @@ func main() {
 
 	//targetInstances := []string{resp.Instances[0].InstanceId}
 	//targetInstances := []string{}
-	resp2, err2 := client.DescribeInstances([]string{"OjtKoike"}, nil)
-	fmt.Println(err2)
-	//resp2, err2 := client.DescribeInstances([]string{"i-0bpbqidh"}, nil)
-	// fmt.Println(len(resp2.Reservations))
-	// fmt.Println(len(resp2.Reservations[0].Instances))
-	fmt.Println("\n")
-	a, _ := json.Marshal(resp2.Reservations)
-	os.Stdout.Write(a)
-	fmt.Println("\n")
-	fmt.Println(err2)
-	fmt.Println("--------------------------------------------------------------------")
+	//	resp2, err2 := client.DescribeInstances([]string{"OjtKoike"}, nil)
+	//	fmt.Println(err2)
+	//	//resp2, err2 := client.DescribeInstances([]string{"i-0bpbqidh"}, nil)
+	//	// fmt.Println(len(resp2.Reservations))
+	//	// fmt.Println(len(resp2.Reservations[0].Instances))
+	//	fmt.Println("\n")
+	//	a, _ := json.Marshal(resp2.Reservations)
+	//	os.Stdout.Write(a)
+	//	fmt.Println("\n")
+	//	fmt.Println(err2)
+	//	fmt.Println("--------------------------------------------------------------------")
+	//
+	//	fmt.Println("----------------------------------------------------")
+	//	_, err3 := client.TerminateInstances([]string{"OjtTerra"})
+	//	fmt.Println(err3)
+	//
 
-	terraformId := "aaaaaa"
-	fmt.Println(len(strings.Split(terraformId, ",")))
-	instanceId := strings.Split(terraformId, ",")[0]
-	//uniqueInstanceId := strings.Split(terraformId, ",")[1]
-	//fmt.Println("terraform id : " + terraformId)
-	fmt.Println("instance id : " + instanceId)
-	//fmt.Println("unique instance id : " + uniqueInstanceId)
+	//modifyInstanceOpts := compute.ModifyInstance{
+	//	InstanceType:          "mini",
+	//	DisableAPITermination: false,
+	//}
+	//_, err2 := client.ModifyInstance("OjtTerra2", &modifyInstanceOpts)
+	//if err2 != nil {
+	//	fmt.Errorf("Error ModifyInstance request %#v", err2)
+	//}
 
-	fmt.Println("----------------------------------------------------")
-	_, err3 := client.TerminateInstances([]string{"OjtTerra"})
-	fmt.Println(err3)
+	resp, err := client.ImportKeyPair("keygote", "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCztl4uCOS3M+JMcDVJyWn2HjyLTVEOWWS5Fm5573iMFVF9y/XcPiXqNdVnxkWqjaxycnmyLOXYWMKurZnRF8qvLVl+MqzUYxypjcQKGySo5MxYfayUd53TWv2p+ZpykJ6omg+HBD2CEtV+4XRGb+/Q5OC40qD8d9T1XdZu6f/jUSO3RNeqRWARKmaFcVfoKYzA8p0RjLRmdJus2ir9kH3OYfSzglqmtw5m8Cj8ikgfs9C99M2KAQUflBcMeHNbIdHhTvuclA86ESRnZNyi3hUCLCme2EaClgl3wMKUxfmqTAHZvnaRs4BhOvi3BFPQXzM8dk+frtCNa+4Ut9yZZSAuKyddGcJeOGNp7ev0752JZtiG+QLwCMZ30aibImFQYhAInhRxSGq0b6UYMgETUXHwj3uJ4pm/ts8r4EODRs2PLbMQjcy41Gnnf52DgIHppNYC8zmrVfZ9wzJtuNdlp/XgiTJJlvUx1Ng+b86WkbGvVIHXaD+hokKKy5KqYF5YmlQcM0GesErvJ9iA8OKsE2t8Yt3UYooG6BMr5zwu6YntVdI2yxzYkbym5zFEMHFiu12hscp9EKo87D9Q2fdyQgBWJj4mMrNirRwFqq+rOOiZujU777Leu+fxJLnKliCo56bBIGhYh7/LUU7Eopjm9VdYeNX3mn0oP+WzPDxuWbSuxw== koike@ubuntu")
+
+	//resp, err := client.KeyPairs([]string{"OjtKoike"}, &compute.Filter{})
+	if err != nil {
+		fmt.Println("Import Key error %s", err)
+	}
+	fmt.Print(resp)
 
 }
