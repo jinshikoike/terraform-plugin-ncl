@@ -104,7 +104,7 @@ func resourceInstance() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"force_destroy": &schema.Schema{
+			"stop": &schema.Schema{
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
@@ -112,6 +112,7 @@ func resourceInstance() *schema.Resource {
 			"code": &schema.Schema{
 				Type:     schema.TypeInt,
 				Optional: true,
+				Computed: true,
 			},
 		},
 	}
@@ -120,7 +121,7 @@ func resourceInstance() *schema.Resource {
 func resourceInstanceCreate(d *schema.ResourceData, meta interface{}) error {
 	nclClient := meta.(*NclClient)
 
-	if d.Get("force_destroy").(bool) {
+	if d.Get("stop").(bool) {
 		return nil
 	}
 
@@ -152,16 +153,7 @@ func resourceInstanceCreate(d *schema.ResourceData, meta interface{}) error {
 	// TODO: https://github.com/higebu/go-niftycloud/blob/master/compute/compute.go#L328
 	// can not set false to DisableApiTermination
 
-	//for loopCount := 0; loopCount <= 10; {
-	//	result, _, _ := checkStatusCode(nclClient, instanceID, stateActive)
-	//	if result {
-	//		break
-	//	}
-	//	time.Sleep(10 * time.Second)
-	//	loopCount++
-	//}
-
-	result := polling(nclClient, resp.Instances[0].InstanceId, stateActive)
+	result, _ := polling(nclClient, resp.Instances[0].InstanceId, stateActive)
 	if result {
 		d.Set("code", stateActive)
 	}
@@ -181,8 +173,8 @@ func resourceInstanceDelete(d *schema.ResourceData, meta interface{}) error {
 		return nil
 	}
 
-	instanceIsActive, currentState, _ := checkStatusCode(nclClient, instanceID, stateActive, stateStop)
-	if !instanceIsActive {
+	stateCheck, currentState, _ := checkStatusCode(nclClient, instanceID, stateActive, stateStop)
+	if !stateCheck {
 		return nil
 	}
 
@@ -199,26 +191,18 @@ func resourceInstanceDelete(d *schema.ResourceData, meta interface{}) error {
 			return fmt.Errorf("Error Stop Instance: %s", respErr)
 		}
 
-		// wait instance state change from pending to stop
-		//for loopCount := 0; loopCount <= 10; {
-		//	result, _, _ := checkStatusCode(nclClient, instanceID, stateStop)
-		//	if result {
-		//		break
-		//	}
-		//	time.Sleep(10 * time.Second)
-		//	loopCount++
-		//}
-		polling(nclClient, instanceID, stateStop)
+		stateCheck, currentState = polling(nclClient, instanceID, stateStop)
 	}
 
-	if d.Get("force_destroy").(bool) {
-		_, terminateErr := nclClient.TerminateInstances([]string{instanceID})
-		if terminateErr != nil {
-			return fmt.Errorf("Error Terminate Instance: %s", terminateErr)
-		}
+	if currentState != stateStop {
+		return fmt.Errorf("Error Current Instance is not Stop")
 	}
 
-	return resourceInstanceRead(d, meta)
+	_, terminateErr := nclClient.TerminateInstances([]string{instanceID})
+	if terminateErr != nil {
+		return fmt.Errorf("Error Terminate Instance: %s", terminateErr)
+	}
+	return nil
 }
 
 func resourceInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
@@ -237,10 +221,26 @@ func resourceInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
 			return fmt.Errorf("Error start Instances")
 		}
 
-		if polling(nclClient, instanceID, stateActive) {
-			d.Set("code", stateActive)
+		if result, _ = polling(nclClient, instanceID, stateActive); result {
+			d.SetId("")
 		}
+	} else {
+		toStop := d.Get("stop").(bool)
+		if toStop {
+			opts := compute.StopInstancesOptions{
+				Force: true,
+				InstanceIds: []string{
+					instanceID,
+				},
+			}
+			_, respErr := nclClient.StopInstances(&opts)
+			if respErr != nil {
+				return fmt.Errorf("Error Stop Instance: %s", respErr)
+			}
+			polling(nclClient, instanceID, stateStop)
 
+			return resourceInstanceRead(d, meta)
+		}
 	}
 
 	return resourceInstanceRead(d, meta)
@@ -311,9 +311,9 @@ func checkStatusCode(client *NclClient, instanceID string, expectedState ...int)
 	return result, currentState, nil
 }
 
-func polling(client *NclClient, instanceID string, expectedState ...int) (result bool) {
+func polling(client *NclClient, instanceID string, expectedState ...int) (result bool, currentState int) {
 	for loopCount := 0; loopCount <= maxLoopCount; {
-		result, _, _ = checkStatusCode(client, instanceID, expectedState...)
+		result, currentState, _ = checkStatusCode(client, instanceID, expectedState...)
 		if result {
 			break
 		}
