@@ -16,8 +16,8 @@
 [[projects]]
   name = "github.com/aws/aws-sdk-go"
   packages = ["aws","aws/awserr","aws/awsutil","aws/client","aws/client/metadata","aws/corehandlers","aws/credentials","aws/credentials/ec2rolecreds","aws/credentials/endpointcreds","aws/credentials/stscreds","aws/defaults","aws/ec2metadata","aws/endpoints","aws/request","aws/session","aws/signer/v4","internal/shareddefaults","private/protocol","private/protocol/query","private/protocol/query/queryutil","private/protocol/rest","private/protocol/restxml","private/protocol/xml/xmlutil","service/s3","service/sts"]
-  revision = "960dd6034cbdac0e9716bfa66d91de88b286889f"
-  version = "v1.10.38"
+  revision = "af01be3e6edf79e6f07b5816cfe0d2c6717e5c7f"
+  version = "v1.10.41"
 
 [[projects]]
   branch = "master"
@@ -112,8 +112,8 @@
 [[projects]]
   name = "github.com/hashicorp/terraform"
   packages = ["config","config/module","dag","flatmap","helper/hashcode","helper/hilmapstructure","helper/schema","moduledeps","plugin","plugin/discovery","terraform"]
-  revision = "1511d447e78d8106787875265f96d3a3a03005d5"
-  version = "v0.10.3"
+  revision = "10df48ef40aa7fdddb8a13af79a8df9028788f01"
+  version = "v0.10.4"
 
 [[projects]]
   branch = "master"
@@ -122,10 +122,10 @@
   revision = "d1caa6c97c9fc1cc9e83bbe34d0603f9ff0ce8bd"
 
 [[projects]]
-  branch = "master"
+  branch = "ImportKeyPair"
   name = "github.com/jinshikoike/go-niftycloud"
   packages = ["compute","niftycloud"]
-  revision = "009934aae8e96c2234d25a98b80260fa97e717bd"
+  revision = "e304dcee3a864147ca46afc9a192ac674f95e2a8"
 
 [[projects]]
   name = "github.com/jmespath/go-jmespath"
@@ -143,7 +143,7 @@
   branch = "master"
   name = "github.com/mitchellh/cli"
   packages = ["."]
-  revision = "dff723fff508858a44c1f4bd0911f00d73b0202f"
+  revision = "65fcae5817c8600da98ada9d7edf26dd1a84837b"
 
 [[projects]]
   branch = "master"
@@ -185,7 +185,7 @@
   branch = "master"
   name = "github.com/posener/complete"
   packages = [".","cmd","cmd/install","match"]
-  revision = "9f41f7636a724791a3b8b1d35e84caa1124f0d3c"
+  revision = "88e59760adaddb8276c9b15511302890690e2dae"
 
 [[projects]]
   name = "github.com/satori/go.uuid"
@@ -203,7 +203,7 @@
   branch = "master"
   name = "golang.org/x/crypto"
   packages = ["bcrypt","blowfish","cast5","openpgp","openpgp/armor","openpgp/elgamal","openpgp/errors","openpgp/packet","openpgp/s2k"]
-  revision = "81e90905daefcd6fd217b62423c0908922eadb30"
+  revision = "9ba3862cf6a5452ae579de98f9364dd2e544844c"
 
 [[projects]]
   branch = "master"
@@ -215,7 +215,7 @@
   branch = "master"
   name = "golang.org/x/sys"
   packages = ["unix"]
-  revision = "9aade4d3a3b7e6d876cd3823ad20ec45fc035402"
+  revision = "a5054c7c1385fd50d9394475365355a87a7873ec"
 
 [[projects]]
   branch = "master"
@@ -238,6 +238,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "91a72b7d549d9fe80dd46878147cd64b4ccb9d209b6c5b29ddf2cea75458b452"
+  inputs-digest = "46434cb5782ec68071025069ddc621ebc4c225c40aa8a35536eca9a6e1c95236"
   solver-name = "gps-cdcl"
   solver-version = 1
