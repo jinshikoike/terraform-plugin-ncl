@@ -104,10 +104,23 @@ func resourceInstance() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"stop": &schema.Schema{
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  false,
+			"state": &schema.Schema{
+				Type:        schema.TypeString,
+				Description: "valid value is running or stopped. Default is runnning.",
+				Optional:    true,
+				Default:     "running",
+				ValidateFunc: func(data interface{}, name string) (ws []string, errors []error) {
+					input_data := data.(string)
+					switch input_data {
+					case "running":
+						return
+					case "stopped":
+						return
+					default:
+						errors = append(errors, fmt.Errorf("state value must be running or stopped"))
+					}
+					return
+				},
 			},
 			"code": &schema.Schema{
 				Type:     schema.TypeInt,
