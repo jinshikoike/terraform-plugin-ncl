@@ -16,8 +16,8 @@
 [[projects]]
   name = "github.com/aws/aws-sdk-go"
   packages = ["aws","aws/awserr","aws/awsutil","aws/client","aws/client/metadata","aws/corehandlers","aws/credentials","aws/credentials/ec2rolecreds","aws/credentials/endpointcreds","aws/credentials/stscreds","aws/defaults","aws/ec2metadata","aws/endpoints","aws/request","aws/session","aws/signer/v4","internal/shareddefaults","private/protocol","private/protocol/query","private/protocol/query/queryutil","private/protocol/rest","private/protocol/restxml","private/protocol/xml/xmlutil","service/s3","service/sts"]
-  revision = "af01be3e6edf79e6f07b5816cfe0d2c6717e5c7f"
-  version = "v1.10.41"
+  revision = "54cc1aa0ef5ada10597b09e1939a8eb75f6aef96"
+  version = "v1.10.43"
 
 [[projects]]
   branch = "master"
@@ -65,7 +65,7 @@
   branch = "master"
   name = "github.com/hashicorp/go-getter"
   packages = [".","helper/url"]
-  revision = "80eb888f740e980f6585273d48582c74b3a34f88"
+  revision = "a0a1db109e490aaf1059ee13aaab5bf049c2cdc4"
 
 [[projects]]
   branch = "master"
@@ -125,7 +125,7 @@
   branch = "ImportKeyPair"
   name = "github.com/jinshikoike/go-niftycloud"
   packages = ["compute","niftycloud"]
-  revision = "e304dcee3a864147ca46afc9a192ac674f95e2a8"
+  revision = "4d72ed5cabea937291bd9182554903dea1af1dd8"
 
 [[projects]]
   name = "github.com/jmespath/go-jmespath"
@@ -203,25 +203,25 @@
   branch = "master"
   name = "golang.org/x/crypto"
   packages = ["bcrypt","blowfish","cast5","openpgp","openpgp/armor","openpgp/elgamal","openpgp/errors","openpgp/packet","openpgp/s2k"]
-  revision = "9ba3862cf6a5452ae579de98f9364dd2e544844c"
+  revision = "faadfbdc035307d901e69eea569f5dda451a3ee3"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/net"
   packages = ["context","html","html/atom","http2","http2/hpack","idna","internal/timeseries","lex/httplex","trace"]
-  revision = "66aacef3dd8a676686c7ae3716979581e8b03c47"
+  revision = "b129b8e0fbeb39c8358e51a07ab6c50ad415e72e"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/sys"
   packages = ["unix"]
-  revision = "a5054c7c1385fd50d9394475365355a87a7873ec"
+  revision = "062cd7e4e68206d8bab9b18396626e855c992658"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/text"
   packages = ["internal/gen","internal/triegen","internal/ucd","secure/bidirule","transform","unicode/bidi","unicode/cldr","unicode/norm","unicode/rangetable"]
-  revision = "bd91bbf73e9a4a801adbfb97133c992678533126"
+  revision = "acd49d43e9b95df46670431bf5c7ae59586daad8"
 
 [[projects]]
   branch = "master"
