@@ -19,14 +19,9 @@ func resourceKeyPair() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
-			"password": &schema.Schema{
+			"public_key": &schema.Schema{
 				Type:     schema.TypeString,
 				Required: true,
-			},
-			"private_key": &schema.Schema{
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
 			},
 		},
 	}
