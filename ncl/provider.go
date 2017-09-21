@@ -36,6 +36,7 @@ func Provider() terraform.ResourceProvider {
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"ncl_instance": resourceInstance(),
+      "ncl_keypair": resourceKeyPair(),
 		},
 		ConfigureFunc: providerConfigure,
 	}
