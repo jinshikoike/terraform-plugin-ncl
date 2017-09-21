@@ -77,8 +77,8 @@ func resourceInstance() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				ValidateFunc: func(data interface{}, name string) (ws []string, errors []error) {
-					input_data := data.(string)
-					if len(input_data) > 15 {
+					inputData := data.(string)
+					if len(inputData) > 15 {
 						errors = append(errors, fmt.Errorf("instance_id length must be <= 15"))
 					}
 					return
@@ -110,8 +110,8 @@ func resourceInstance() *schema.Resource {
 				Optional:    true,
 				Default:     "running",
 				ValidateFunc: func(data interface{}, name string) (ws []string, errors []error) {
-					input_data := data.(string)
-					switch input_data {
+					inputData := data.(string)
+					switch inputData {
 					case "running":
 						return
 					case "stopped":
@@ -134,7 +134,7 @@ func resourceInstance() *schema.Resource {
 func resourceInstanceCreate(d *schema.ResourceData, meta interface{}) error {
 	nclClient := meta.(*NclClient)
 
-	if d.Get("stop").(bool) {
+	if d.Get("state").(string) == "stopping"{
 		return nil
 	}
 
@@ -238,8 +238,8 @@ func resourceInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
 			d.SetId("")
 		}
 	} else {
-		toStop := d.Get("stop").(bool)
-		if toStop {
+		toStop := d.Get("state").(string)
+		if toStop == "stopping"{
 			opts := compute.StopInstancesOptions{
 				Force: true,
 				InstanceIds: []string{
