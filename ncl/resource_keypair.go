@@ -11,7 +11,7 @@ func resourceKeyPair() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceKeyPairCreate,
 		Read:   resourceKeyPairRead,
-		Update: resourceKeyPairUpdate,
+    Update: resourceKeyPairUpdate,
 		Delete: resourceKeyPairDelete,
 		Schema: map[string]*schema.Schema{
 			"name": &schema.Schema{
