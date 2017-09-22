@@ -62,12 +62,31 @@ func main() {
 	//	fmt.Errorf("Error ModifyInstance request %#v", err2)
 	//}
 
-	resp, err := client.ImportKeyPair("keygote", "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCztl4uCOS3M+JMcDVJyWn2HjyLTVEOWWS5Fm5573iMFVF9y/XcPiXqNdVnxkWqjaxycnmyLOXYWMKurZnRF8qvLVl+MqzUYxypjcQKGySo5MxYfayUd53TWv2p+ZpykJ6omg+HBD2CEtV+4XRGb+/Q5OC40qD8d9T1XdZu6f/jUSO3RNeqRWARKmaFcVfoKYzA8p0RjLRmdJus2ir9kH3OYfSzglqmtw5m8Cj8ikgfs9C99M2KAQUflBcMeHNbIdHhTvuclA86ESRnZNyi3hUCLCme2EaClgl3wMKUxfmqTAHZvnaRs4BhOvi3BFPQXzM8dk+frtCNa+4Ut9yZZSAuKyddGcJeOGNp7ev0752JZtiG+QLwCMZ30aibImFQYhAInhRxSGq0b6UYMgETUXHwj3uJ4pm/ts8r4EODRs2PLbMQjcy41Gnnf52DgIHppNYC8zmrVfZ9wzJtuNdlp/XgiTJJlvUx1Ng+b86WkbGvVIHXaD+hokKKy5KqYF5YmlQcM0GesErvJ9iA8OKsE2t8Yt3UYooG6BMr5zwu6YntVdI2yxzYkbym5zFEMHFiu12hscp9EKo87D9Q2fdyQgBWJj4mMrNirRwFqq+rOOiZujU777Leu+fxJLnKliCo56bBIGhYh7/LUU7Eopjm9VdYeNX3mn0oP+WzPDxuWbSuxw== koike@ubuntu")
+  //importKeyPairOpts := compute.ImportKeyOpts{
+  //  KeyName: "keyojttest",
+  //  PublicKeyMaterial: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCztl4uCOS3M+JMcDVJyWn2HjyLTVEOWWS5Fm5573iMFVF9y/XcPiXqNdVnxkWqjaxycnmyLOXYWMKurZnRF8qvLVl+MqzUYxypjcQKGySo5MxYfayUd53TWv2p+ZpykJ6omg+HBD2CEtV+4XRGb+/Q5OC40qD8d9T1XdZu6f/jUSO3RNeqRWARKmaFcVfoKYzA8p0RjLRmdJus2ir9kH3OYfSzglqmtw5m8Cj8ikgfs9C99M2KAQUflBcMeHNbIdHhTvuclA86ESRnZNyi3hUCLCme2EaClgl3wMKUxfmqTAHZvnaRs4BhOvi3BFPQXzM8dk+frtCNa+4Ut9yZZSAuKyddGcJeOGNp7ev0752JZtiG+QLwCMZ30aibImFQYhAInhRxSGq0b6UYMgETUXHwj3uJ4pm/ts8r4EODRs2PLbMQjcy41Gnnf52DgIHppNYC8zmrVfZ9wzJtuNdlp/XgiTJJlvUx1Ng+b86WkbGvVIHXaD+hokKKy5KqYF5YmlQcM0GesErvJ9iA8OKsE2t8Yt3UYooG6BMr5zwu6YntVdI2yxzYkbym5zFEMHFiu12hscp9EKo87D9Q2fdyQgBWJj4mMrNirRwFqq+rOOiZujU777Leu+fxJLnKliCo56bBIGhYh7/LUU7Eopjm9VdYeNX3mn0oP+WzPDxuWbSuxw== koike@ubuntu",
+  //  Description: "desc",
+  //}
 
-	//resp, err := client.KeyPairs([]string{"OjtKoike"}, &compute.Filter{})
-	if err != nil {
-		fmt.Println("Import Key error %s", err)
-	}
-	fmt.Print(resp)
+	//resp, err := client.ImportKeyPair(&importKeyPairOpts)
 
+	////resp, err := client.KeyPairs([]string{"OjtKoike"}, &compute.Filter{})
+	//if err != nil {
+	//	fmt.Println("Import Key error %s", err)
+	//}
+	//fmt.Print(resp.KeyName)
+
+  //resp2, err2 := client.KeyPairs([]string{"keyojttest"}, nil)
+
+  //if err2 != nil {
+  //  fmt.Println("KeyPairs request failed")
+  //}
+  //for _, val := range resp2.Keys {
+  //  if val.Name == "keyojttest" {
+  //    fmt.Println(val.Name)
+  //    break
+  //  }
+  //}
+
+  group := SecurityGroup()
 }
